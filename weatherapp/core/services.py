@@ -4,14 +4,47 @@ import io
 
 from weatherapp.core import constants
 
+from django.core.cache import cache
+
 import requests
 import pandas
 
 
+def get_outside_temp_context():
+  """ Gets and returns the context for the Outside Temperatures View
+  """
+  highs = _get_highest_temps()
+  times = []
+  temps = []
+  for value in highs.values():
+    times.append(datetime.datetime.strptime(value['time'], '%H:%M'))
 
-def get_weather_data():
+  for k, v in highs.items():
+    temps.append({'date': k, 'temp': v['temp']})
+
+  avg_time = _get_average_time(times)
+  most_common = _get_most_common_time(times)
+  top_temps = _get_top_temps(temps)
+
+  return {
+      'time': avg_time,
+      'most_common_time': most_common,
+      'top_temps': top_temps,
+  }
+
+
+def get_hi_temp_context():
+  """ Gets and returns the context for the Hi Temp View
+  """
+  dates = _get_hi_temp_range()
+
+  #TODO(ryan): Format dates for txt file
+
+  return ''
+
+
+def _get_weather_data():
   """ Fetches the weather data CSV from the given URL
-
   """
   response = requests.get(constants.WEATHER_CSV_URL)
   data = response.content.decode('utf-8')
@@ -19,17 +52,31 @@ def get_weather_data():
   df = pandas.read_csv(
       io.StringIO(data), usecols=constants.WEATHER_CSV_FIELDNAMES)
 
+  cache.set('weather_df', df, 86400)
+
   return df
 
 
-def format_date(date_str):
+def _get_weather_df():
+  """ Fetches the dataframe from the cache. If none are available,
+  it fetches a new one.
+  """
+  if cache.get('weather_df') is None:
+    return _get_weather_data()
+
+  return cache.get('weather_df')
+
+
+def _create_date(date_str):
+  """ Creates a datetime from the str given in the csv.
+  """
   return datetime.datetime.strptime(date_str, '%d/%m/%Y')
 
 
-def get_highest_temps():
+def _get_highest_temps():
   """ Creates a dictionary of the highest temperatures
   """
-  df = get_weather_data()
+  df = _get_weather_df()
   unique_dates = df.Date.unique()
   highest_values = {}
 
@@ -50,7 +97,7 @@ def get_highest_temps():
   return highest_values
 
 
-def get_average_time(times):
+def _get_average_time(times):
   """ Calculates and returns the average time in a list of times
   """
   total = sum(dt.hour * 3600 + dt.minute * 60 + dt.second for dt in times)
@@ -59,34 +106,71 @@ def get_average_time(times):
   return datetime.datetime.fromtimestamp(avg).strftime('%H:%M')
 
 
-def get_most_common_time(times):
+def _get_most_common_time(times):
   """ Gets and returns the most commonly occuring time in a list of times
   """
   most_common = collections.Counter(times).most_common(1)[0]
   return most_common[0].strftime('%H:%M')
 
 
-def get_top_temps(temps):
+def _get_top_temps(temps):
+  """ Sorts a list of dictionaries containing temperatures and dates.
+  Returns the top 10 temperatures, sorted by date.
+  """
   top_temps = sorted(temps, key=lambda k: k['temp'], reverse=True)[:10]
-  return sorted(top_temps, key=lambda k: format_date(k['date']))
+  return sorted(top_temps, key=lambda k: _create_date(k['date']))
 
 
-def get_outside_temp_context():
-  highs = get_highest_temps()
-  times = []
-  temps = []
-  for value in highs.values():
-    times.append(datetime.datetime.strptime(value['time'], '%H:%M'))
+def _create_june_dates_list(unique_dates):
+  june_dates = []
 
-  for k, v in highs.items():
-    temps.append({'date': k, 'temp': v['temp']})
+  for date in unique_dates:
+    if _create_date(date).month == 6:
+      june_dates.append(date)
 
-  avg_time = get_average_time(times)
-  most_common = get_most_common_time(times)
-  top_temps = get_top_temps(temps)
+  return sorted(june_dates)[:9]
 
-  return {
-      'time': avg_time,
-      'most_common_time': most_common,
-      'top_temps': top_temps,
-  }
+
+def _is_valid_temps(hi_temp, low_temp):
+  hi_temp_range_upper = constants.HI_TEMP + constants.HI_TEMP_RANGE
+  hi_temp_range_lower = constants.HI_TEMP - constants.HI_TEMP_RANGE
+  low_temp_range_upper = constants.LOW_TEMP + constants.LOW_TEMP_RANGE
+  low_temp_range_lower = constants.LOW_TEMP - constants.LOW_TEMP_RANGE
+
+  is_hi_temp = False
+  is_low_temp = False
+
+  if hi_temp_range_lower <= hi_temp <= hi_temp_range_upper:
+    is_hi_temp = True
+
+  if low_temp_range_lower <= low_temp <= low_temp_range_upper:
+    is_low_temp = True
+
+  if is_hi_temp or is_low_temp:
+    return True
+
+  return False
+
+
+def _get_hi_temp_range():
+  df = _get_weather_df()
+
+  unique_dates = df.Date.unique()
+  dates = _create_june_dates_list(unique_dates)
+
+  valid_dates = []
+
+  for date in dates:
+    # Initialise the highest value to be overwritten
+    rows = df.loc[df['Date'] == date]
+
+    for index, row in rows.iterrows():
+      if _is_valid_temps(row['Hi Temperature'], row['Low Temperature']):
+        valid_dates.append({
+            'date': date,
+            'hi_temp': row['Hi Temperature'],
+            'low_temp': row['Low Temperature'],
+            'time': row['Time'],
+        })
+
+  return valid_dates

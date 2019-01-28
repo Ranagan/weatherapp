@@ -19,6 +19,7 @@ from weatherapp.core import views
 
 urlpatterns = [
     url(r'^api/get-outside-temp/$', views.OutsideTempView.as_view()),
+    url(r'^api/get-hi-temp/$', views.HiTempView.as_view()),
     url(r'^api/', include('rest_framework.urls')),
 ]
 
