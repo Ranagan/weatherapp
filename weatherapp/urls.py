@@ -18,10 +18,10 @@ from django.conf.urls import include, url
 from weatherapp.core import views
 
 urlpatterns = [
-    url(r'^api/get-outside-temp/$', views.OutsideTempView.as_view()),
-    url(r'^api/get-hi-temp/$', views.HiTempView.as_view()),
-    url(r'^api/get-forecast/$', views.ForecastView.as_view()),
-    url(r'^api/', include('rest_framework.urls')),
+    url(r'^download/outside_temp.txt$', views.OutsideTempView.as_view()),
+    url(r'^download/hi_temp.txt$', views.HiTempView.as_view()),
+    url(r'^download/forecast.txt$', views.ForecastView.as_view()),
+    url(r'^download/', include('rest_framework.urls')),
 ]
 
 from rest_framework.urlpatterns import format_suffix_patterns
