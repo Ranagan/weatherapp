@@ -1,10 +1,10 @@
 # Initial setup
 ## Dependencies
+- sqlite3
 - memcached
 - python3
 - pip
 - curl
-
 
 ```bash
 virtualenv -p python3 env
@@ -12,6 +12,8 @@ virtualenv -p python3 env
 source ./env/bin/activate
 
 pip install -r requirements.txt
+
+python manage.py migrate
 ```
 
 ## Make sure memcache is running
