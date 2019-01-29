@@ -50,7 +50,11 @@ def get_forecast_context():
 def _get_weather_data():
   """ Fetches the weather data CSV from the given URL
   """
-  response = requests.get(constants.WEATHER_CSV_URL)
+  try:
+    response = requests.get(constants.WEATHER_CSV_URL)
+  except requests.exceptions.RequestException as e:
+    raise e
+
   data = response.content.decode('utf-8')
 
   df = pandas.read_csv(
@@ -112,7 +116,6 @@ def _get_average_time(times):
   """
   total = sum(dt.hour * 3600 + dt.minute * 60 + dt.second for dt in times)
   avg = total / len(times)
-
   return datetime.datetime.fromtimestamp(avg).strftime('%H:%M')
 
 
