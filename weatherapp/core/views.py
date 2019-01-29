@@ -28,3 +28,15 @@ class HiTempView(APIView):
     response = HttpResponse("this is a big ole test", content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="hi_temp.txt"'
     return response
+
+
+class ForecastView(APIView):
+  """ Defines endpoint to get the forecast data.
+  """
+
+  def get(self, request):
+    context = services.get_forecast_context()
+
+    response = HttpResponse("this is a big ole test", content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="forecast.txt"'
+    return response
