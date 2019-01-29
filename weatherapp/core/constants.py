@@ -10,3 +10,9 @@ LOW_TEMP = 10.3
 LOW_TEMP_RANGE = 0.2
 
 JULY_AVG_TEMP = 25
+
+OUTSIDE_VIEW_CONTENT_STR = 'Average time of hottest daily temperature: {time}\n\nMost commonly occuring hottest time: {most_common_time}\n\nTop ten hottest times: {top_temps}'
+
+HI_TEMP_CONTENT_STR = 'Valid criteria:\n\n{}'
+
+FORECAST_CONTENT_STR = 'Forecast:\n\n{}'

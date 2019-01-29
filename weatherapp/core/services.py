@@ -36,19 +36,15 @@ def get_outside_temp_context():
 def get_hi_temp_context():
   """ Gets and returns the context for the Hi Temp View
   """
-  dates = _get_hi_temp_range()
-
-  #TODO(ryan): Format dates for txt file
-
-  return ''
+  valid_entries = _get_hi_temp_range()
+  return valid_entries
 
 
 def get_forecast_context():
   """ Gets and returns the context for the Forecast View
   """
-  temp = _calculate_forecast()
-
-  return ''
+  forecast = _calculate_forecast()
+  return forecast
 
 
 def _get_weather_data():

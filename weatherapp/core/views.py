@@ -3,6 +3,7 @@ import datetime
 from django.http import HttpResponse
 from rest_framework.views import APIView
 
+from weatherapp.core import constants
 from weatherapp.core import services
 
 
@@ -12,8 +13,9 @@ class OutsideTempView(APIView):
 
   def get(self, request):
     context = services.get_outside_temp_context()
+    content = constants.OUTSIDE_VIEW_CONTENT_STR.format(**context)
 
-    response = HttpResponse("this is a big ole test", content_type='text/plain')
+    response = HttpResponse(content, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="outside_temp.txt"'
     return response
 
@@ -24,8 +26,9 @@ class HiTempView(APIView):
 
   def get(self, request):
     context = services.get_hi_temp_context()
+    content = constants.HI_TEMP_CONTENT_STR.format(context)
 
-    response = HttpResponse("this is a big ole test", content_type='text/plain')
+    response = HttpResponse(content, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="hi_temp.txt"'
     return response
 
@@ -36,7 +39,8 @@ class ForecastView(APIView):
 
   def get(self, request):
     context = services.get_forecast_context()
+    content = constants.FORECAST_CONTENT_STR.format(context)
 
-    response = HttpResponse("this is a big ole test", content_type='text/plain')
+    response = HttpResponse(content, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="forecast.txt"'
     return response
