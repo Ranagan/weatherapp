@@ -1,4 +1,6 @@
 # Initial setup
+Read `challenge-description.txt` to get an idea of what this code is attempting to accomplish.
+
 ## Dependencies
 - sqlite3
 - memcached
